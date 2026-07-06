@@ -3,7 +3,12 @@ import heroBg from "@/assets/hero-bg.jpg";
 import coreCollection from "@/assets/collections/core-collection.jpg";
 import setsAndPairs from "@/assets/collections/sets-and-pairs.jpg";
 import NewsletterSignup from "@/components/NewsletterSignup";
-import { featuredProducts } from "@/data/products";
+import { featuredProducts, CATEGORIES, getProductsByCategory, type Category as CategorySlug } from "@/data/products";
+
+const categoryCards = CATEGORIES.map(c => {
+  const first = getProductsByCategory(c.slug as CategorySlug)[0];
+  return { ...c, image: first?.image };
+});
 
 export default function Index() {
   return (
@@ -45,6 +50,41 @@ export default function Index() {
               </Link>
             ))}
           </div>
+        </div>
+      </section>
+
+      {/* Shop by Category */}
+      <section className="max-w-7xl mx-auto px-6 py-16">
+        <div className="flex items-end justify-between mb-10">
+          <div>
+            <p className="text-xs uppercase tracking-widest text-muted-foreground mb-2">Shop by Category</p>
+            <h2 className="text-3xl md:text-4xl font-light text-foreground">Something for everyone.</h2>
+          </div>
+          <Link to="/shop" className="hidden md:inline text-sm uppercase tracking-widest text-muted-foreground hover:text-foreground transition-colors">
+            View all
+          </Link>
+        </div>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          {categoryCards.map(c => (
+            <Link
+              key={c.slug}
+              to={`/category/${c.slug}`}
+              className="group relative block overflow-hidden"
+            >
+              {c.image && (
+                <img
+                  src={c.image}
+                  alt={c.label}
+                  className="w-full aspect-[3/4] object-cover transition-transform duration-700 group-hover:scale-105"
+                  loading="lazy"
+                />
+              )}
+              <div className="absolute inset-0 bg-black/25 group-hover:bg-black/35 transition-colors duration-500 flex flex-col justify-end p-5">
+                <h3 className="text-xl md:text-2xl font-light text-white">{c.label}</h3>
+                <span className="text-xs uppercase tracking-widest text-white/80 mt-1">Shop now →</span>
+              </div>
+            </Link>
+          ))}
         </div>
       </section>
 
