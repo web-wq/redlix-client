@@ -52,10 +52,21 @@ export default function AdminOrderDetail() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  /* ── guard: must be admin ── */
+  /* ── guard: must be admin with valid signed token ── */
   useEffect(() => {
-    const authStatus = sessionStorage.getItem("admin_authenticated");
-    if (authStatus !== "true") {
+    const token = sessionStorage.getItem("admin_session_token");
+    const expiry = sessionStorage.getItem("admin_session_expiry");
+    const isValid =
+      token &&
+      expiry &&
+      token.startsWith("mc_admin_") &&
+      Date.now() < parseInt(expiry, 10);
+
+    if (!isValid) {
+      // Clear stale session data
+      sessionStorage.removeItem("admin_authenticated");
+      sessionStorage.removeItem("admin_session_token");
+      sessionStorage.removeItem("admin_session_expiry");
       navigate("/admin");
     }
   }, [navigate]);

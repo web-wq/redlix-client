@@ -5,6 +5,31 @@ import { Loader2, Plus, Check, MapPin, ArrowRight, QrCode, CreditCard, ArrowLeft
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
+// ── Security helpers ────────────────────────────────────────────
+/** Strip HTML tags and trim whitespace to prevent XSS stored in DB */
+function sanitize(value: string): string {
+  return value
+    .replace(/<[^>]*>/g, "")         // strip HTML tags
+    .replace(/javascript:/gi, "")    // strip JS protocol
+    .replace(/on\w+=/gi, "")         // strip inline event handlers
+    .trim();
+}
+
+/** Validate 10-digit Indian mobile number */
+function validatePhone(phone: string): boolean {
+  return /^[6-9]\d{9}$/.test(phone.trim());
+}
+
+/** Validate 6-digit Indian pincode */
+function validatePincode(pin: string): boolean {
+  return /^[1-9][0-9]{5}$/.test(pin.trim());
+}
+
+/** Validate UPI transaction / UTR reference: alphanumeric, 6–50 chars */
+function validatePaymentRef(ref: string): boolean {
+  return /^[A-Za-z0-9\-_]{4,60}$/.test(ref.trim());
+}
+
 export default function Checkout() {
   const { items, clearCart, subtotal } = useCart();
   const { toast } = useToast();
@@ -109,6 +134,32 @@ export default function Checkout() {
     e.preventDefault();
     if (!user) return;
 
+    // ── Validate inputs before saving ────────────────────────────
+    if (!validatePhone(addrContact)) {
+      toast({
+        title: "Invalid Phone Number",
+        description: "Please enter a valid 10-digit Indian mobile number.",
+        variant: "destructive"
+      });
+      return;
+    }
+    if (!validatePincode(addrPincode)) {
+      toast({
+        title: "Invalid Pincode",
+        description: "Please enter a valid 6-digit Indian pincode.",
+        variant: "destructive"
+      });
+      return;
+    }
+    if (addrAlternative && !validatePhone(addrAlternative)) {
+      toast({
+        title: "Invalid Alternate Number",
+        description: "Alternate mobile must be a valid 10-digit number.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     setIsSavingAddress(true);
     try {
       const newAddressId = crypto.randomUUID();
@@ -117,15 +168,15 @@ export default function Checkout() {
         .insert({
           id: newAddressId,
           userId: user.id,
-          name: addrName,
-          fullAddress: addrFull,
-          landmark: addrLandmark,
-          city: addrCity,
-          district: addrDistrict,
-          pincode: addrPincode,
-          contactNumber: addrContact,
-          emailAddress: addrEmail || null,
-          alternativeMobile: addrAlternative || null
+          name: sanitize(addrName),
+          fullAddress: sanitize(addrFull),
+          landmark: sanitize(addrLandmark),
+          city: sanitize(addrCity),
+          district: sanitize(addrDistrict),
+          pincode: addrPincode.trim(),
+          contactNumber: addrContact.trim(),
+          emailAddress: addrEmail ? sanitize(addrEmail) : null,
+          alternativeMobile: addrAlternative ? addrAlternative.trim() : null
         });
 
       if (error) throw error;
@@ -163,7 +214,10 @@ export default function Checkout() {
 
   const handlePlaceOrder = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
-    
+
+    // Prevent double-submission
+    if (isSubmittingOrder) return;
+
     const selectedAddress = savedAddresses.find(a => a.id === selectedAddressId);
     if (!selectedAddress) {
       toast({
@@ -175,10 +229,32 @@ export default function Checkout() {
     }
 
     if (paymentMethod === "UPI_QR") {
-      if (!payerName.trim() || !transactionId.trim() || !referenceNumber.trim()) {
+      const txnClean = transactionId.trim();
+      const refClean = referenceNumber.trim();
+      const payerClean = payerName.trim();
+
+      if (!payerClean || !txnClean || !refClean) {
         toast({
           title: "Payment Info Required",
           description: "Please fill in all transaction verification details.",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      if (!validatePaymentRef(txnClean)) {
+        toast({
+          title: "Invalid Transaction ID",
+          description: "Transaction ID must be 4-60 alphanumeric characters.",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      if (!validatePaymentRef(refClean)) {
+        toast({
+          title: "Invalid Reference / UTR",
+          description: "UTR/Reference must be 4-60 alphanumeric characters.",
           variant: "destructive"
         });
         return;
@@ -187,27 +263,28 @@ export default function Checkout() {
 
     setIsSubmittingOrder(true);
     try {
-      const itemsListString = items.map(item => `${item.name} (Qty: ${item.quantity})`).join(", ");
+      const itemsListString = items.map(item => `${sanitize(item.name)} (Qty: ${item.quantity})`).join(", ");
 
       const { error } = await supabase
         .from("Order")
         .insert({
           id: crypto.randomUUID(),
-          customerName: selectedAddress.name,
-          customerEmail: selectedAddress.emailAddress || user.email,
+          userId: user.id,
+          customerName: sanitize(selectedAddress.name),
+          customerEmail: sanitize(selectedAddress.emailAddress || user.email),
           items: itemsListString,
           total: subtotal,
           status: "Processing",
           paymentMethod: paymentMethod,
-          transactionId: paymentMethod === "UPI_QR" ? transactionId : "",
-          referenceNumber: paymentMethod === "UPI_QR" ? referenceNumber : ""
+          transactionId: paymentMethod === "UPI_QR" ? sanitize(transactionId) : "",
+          referenceNumber: paymentMethod === "UPI_QR" ? sanitize(referenceNumber) : ""
         });
 
       if (error) throw error;
 
       toast({
         title: "Order Placed Successfully!",
-        description: paymentMethod === "UPI_QR" 
+        description: paymentMethod === "UPI_QR"
           ? "Your payment is being verified. Order has been recorded."
           : "Cash on delivery order has been recorded.",
       });

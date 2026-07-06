@@ -41,11 +41,26 @@ export default function Admin() {
   const [dbProducts, setDbProducts] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Authentication check on load
+  // Brute-force throttle state
+  const [loginAttempts, setLoginAttempts] = useState(0);
+  const [lockoutUntil, setLockoutUntil] = useState<number>(0);
+
+  // Authentication check on load — validate signed token + expiry
   useEffect(() => {
-    const authStatus = sessionStorage.getItem("admin_authenticated");
-    if (authStatus === "true") {
+    const token = sessionStorage.getItem("admin_session_token");
+    const expiry = sessionStorage.getItem("admin_session_expiry");
+    if (
+      token &&
+      expiry &&
+      token.startsWith("mc_admin_") &&
+      Date.now() < parseInt(expiry, 10)
+    ) {
       setIsAuthenticated(true);
+    } else {
+      // Clear any stale / legacy session data
+      sessionStorage.removeItem("admin_authenticated");
+      sessionStorage.removeItem("admin_session_token");
+      sessionStorage.removeItem("admin_session_expiry");
     }
   }, []);
 
@@ -107,27 +122,70 @@ export default function Admin() {
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Brute-force lockout check
+    if (Date.now() < lockoutUntil) {
+      const secondsLeft = Math.ceil((lockoutUntil - Date.now()) / 1000);
+      toast({
+        title: "Too many attempts",
+        description: `Please wait ${secondsLeft}s before trying again.`,
+        variant: "destructive"
+      });
+      return;
+    }
+
     const adminEmail = import.meta.env.VITE_ADMIN_EMAIL;
     const adminPassword = import.meta.env.VITE_ADMIN_PASSWORD;
 
-    if (email === adminEmail && password === adminPassword) {
-      sessionStorage.setItem("admin_authenticated", "true");
+    // Trim inputs before comparing
+    const inputEmail = email.trim().toLowerCase();
+    const inputPassword = password;
+
+    if (
+      adminEmail &&
+      adminPassword &&
+      inputEmail === adminEmail.trim().toLowerCase() &&
+      inputPassword === adminPassword
+    ) {
+      // Write signed session token with 60-minute expiry
+      const token = `mc_admin_${crypto.randomUUID()}`;
+      const expiry = Date.now() + 60 * 60 * 1000; // 60 min
+      sessionStorage.setItem("admin_session_token", token);
+      sessionStorage.setItem("admin_session_expiry", expiry.toString());
+      sessionStorage.setItem("admin_authenticated", "true"); // legacy compat
+      setLoginAttempts(0);
       setIsAuthenticated(true);
       toast({
         title: "Access Granted",
         description: "Welcome to Miracle Collections Admin Panel.",
       });
     } else {
-      toast({
-        title: "Access Denied",
-        description: "Invalid email or password. Please try again.",
-        variant: "destructive"
-      });
+      const newAttempts = loginAttempts + 1;
+      setLoginAttempts(newAttempts);
+
+      if (newAttempts >= 5) {
+        const until = Date.now() + 30_000; // 30 second lockout
+        setLockoutUntil(until);
+        setLoginAttempts(0);
+        toast({
+          title: "Account Locked",
+          description: "Too many failed attempts. Please wait 30 seconds.",
+          variant: "destructive"
+        });
+      } else {
+        toast({
+          title: "Access Denied",
+          description: `Invalid credentials. ${5 - newAttempts} attempt${5 - newAttempts === 1 ? "" : "s"} remaining.`,
+          variant: "destructive"
+        });
+      }
     }
   };
 
   const handleLogout = () => {
     sessionStorage.removeItem("admin_authenticated");
+    sessionStorage.removeItem("admin_session_token");
+    sessionStorage.removeItem("admin_session_expiry");
     setIsAuthenticated(false);
     toast({
       title: "Logged Out",
@@ -216,9 +274,22 @@ export default function Admin() {
               </div>
             </div>
 
+            {/* Lockout / attempts warning */}
+            {loginAttempts > 0 && Date.now() >= lockoutUntil && (
+              <p className="text-xs text-amber-600 text-center -mt-2">
+                {5 - loginAttempts} attempt{5 - loginAttempts === 1 ? "" : "s"} remaining before temporary lockout.
+              </p>
+            )}
+            {Date.now() < lockoutUntil && (
+              <p className="text-xs text-red-500 text-center -mt-2 font-medium">
+                🔒 Temporarily locked. Please wait before retrying.
+              </p>
+            )}
+
             <button
               type="submit"
-              className="w-full py-3 bg-primary text-primary-foreground text-sm uppercase tracking-widest hover:opacity-90 transition-opacity font-medium mt-4"
+              disabled={Date.now() < lockoutUntil}
+              className="w-full py-3 bg-primary text-primary-foreground text-sm uppercase tracking-widest hover:opacity-90 transition-opacity font-medium mt-4 disabled:opacity-40 disabled:cursor-not-allowed"
             >
               Sign In
             </button>

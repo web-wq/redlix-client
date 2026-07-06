@@ -20,6 +20,7 @@ import Admin from "./pages/Admin";
 import AdminAddProduct from "./pages/AdminAddProduct";
 import AdminOrderDetail from "./pages/AdminOrderDetail";
 import Account from "./pages/Account";
+import AdminGuard from "./components/AdminGuard";
 import Checkout from "./pages/Checkout";
 import NotFound from "./pages/NotFound";
 
@@ -50,7 +51,7 @@ const App = () => (
             </Route>
             <Route path="/admin" element={<Admin />} />
             <Route path="/admin/products/new" element={<AdminAddProduct />} />
-            <Route path="/admin/orders/:id" element={<AdminOrderDetail />} />
+            <Route path="/admin/orders/:id" element={<AdminGuard><AdminOrderDetail /></AdminGuard>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
