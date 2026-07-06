@@ -26,7 +26,7 @@ export default function CoreCollection() {
           Rooted in craft, built to last.
         </h2>
         <p className="text-base leading-relaxed text-gray-700 mb-6">
-          The Core Collection represents the foundation of Terra Studios — everyday knitwear designed for quiet ritual. Each piece is hand-knitted from responsibly sourced natural yarns, finished in our signature earth-toned palette that layers effortlessly across seasons.
+          The Core Collection represents the foundation of Miracle Collections — everyday pieces designed for quiet ritual. Each garment is hand-crafted from responsibly sourced natural materials, finished in our signature earth-toned palette that layers effortlessly across seasons.
         </p>
         <p className="text-base leading-relaxed text-gray-700">
           Inspired by the textures of the natural world, these designs celebrate the beauty of imperfection. No two garments are identical — the subtle variations in tension, stitch, and dye are what make each piece unmistakably handmade.
