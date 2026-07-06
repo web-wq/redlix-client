@@ -6,6 +6,10 @@ import { cn } from "@/lib/utils";
 
 const navLinks = [
   { to: "/shop", label: "Shop" },
+  { to: "/category/men", label: "Men" },
+  { to: "/category/women", label: "Women" },
+  { to: "/category/kids", label: "Kids" },
+  { to: "/category/footwear", label: "Shoes" },
   { to: "/about", label: "About" },
   { to: "/contact", label: "Contact" },
   
@@ -45,7 +49,7 @@ export default function Header() {
             transparent ? "text-white" : "text-foreground"
           )}
         >
-          Terra Studios
+          Miracle Collections
         </Link>
 
         {/* Desktop nav */}
