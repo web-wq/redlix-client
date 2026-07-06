@@ -16,6 +16,10 @@ import CoreCollection from "./pages/CoreCollection";
 import SetsAndPairs from "./pages/SetsAndPairs";
 import Category from "./pages/Category";
 import Auth from "./pages/Auth";
+import Admin from "./pages/Admin";
+import AdminAddProduct from "./pages/AdminAddProduct";
+import Account from "./pages/Account";
+import Checkout from "./pages/Checkout";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -40,7 +44,11 @@ const App = () => (
               <Route path="/collections/sets-and-pairs" element={<SetsAndPairs />} />
               <Route path="/category/:slug" element={<Category />} />
               <Route path="/auth" element={<Auth />} />
+              <Route path="/account" element={<Account />} />
+              <Route path="/checkout" element={<Checkout />} />
             </Route>
+            <Route path="/admin" element={<Admin />} />
+            <Route path="/admin/products/new" element={<AdminAddProduct />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

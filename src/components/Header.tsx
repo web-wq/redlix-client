@@ -97,7 +97,7 @@ export default function Header() {
         </nav>
 
         <div className="hidden md:flex items-center gap-5">
-          <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
+          <a href="https://www.instagram.com/invites/contact/?utm_source=ig_contact_invite&utm_medium=copy_link&utm_content=108ys3ua" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
             <Instagram className={cn("w-[18px] h-[18px] transition-colors", transparent ? "text-white/80 hover:text-white" : "text-muted-foreground hover:text-foreground")} />
           </a>
 
@@ -107,14 +107,23 @@ export default function Header() {
               <DropdownMenuTrigger aria-label="Account menu" className="outline-none">
                 <User className={cn("w-[18px] h-[18px] transition-colors", transparent ? "text-white/80 hover:text-white" : "text-muted-foreground hover:text-foreground")} />
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56">
-                <DropdownMenuLabel className="font-normal">
+              <DropdownMenuContent align="end" className="w-56 bg-white border border-border p-2 shadow-md">
+                <DropdownMenuLabel className="font-normal px-2 py-1.5 border-b border-border/60 mb-1">
                   <span className="block text-xs text-muted-foreground">Signed in as</span>
-                  <span className="block truncate text-sm">{userEmail}</span>
+                  <span className="block truncate text-sm font-medium">{userEmail}</span>
                 </DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleSignOut}>
-                  <LogOut className="w-4 h-4 mr-2" /> Sign out
+                <DropdownMenuItem onClick={() => navigate("/account?tab=profile")} className="cursor-pointer px-2 py-1.5 text-sm hover:bg-muted/60 transition-colors">
+                  Account Details
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => navigate("/account?tab=orders")} className="cursor-pointer px-2 py-1.5 text-sm hover:bg-muted/60 transition-colors">
+                  Your Orders
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => navigate("/account?tab=wishlist")} className="cursor-pointer px-2 py-1.5 text-sm hover:bg-muted/60 transition-colors">
+                  Wishlist
+                </DropdownMenuItem>
+                <DropdownMenuSeparator className="my-1 border-t border-border/60" />
+                <DropdownMenuItem onClick={handleSignOut} className="cursor-pointer px-2 py-1.5 text-sm text-red-500 hover:bg-red-50 hover:text-red-600 transition-colors">
+                  <LogOut className="w-4 h-4 mr-2 inline" /> Sign out
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -136,7 +145,7 @@ export default function Header() {
 
         {/* Mobile */}
         <div className="flex md:hidden items-center gap-4">
-          <Link to={userEmail ? "/" : "/auth"} onClick={userEmail ? handleSignOut : undefined} aria-label={userEmail ? "Sign out" : "Sign in"}>
+          <Link to={userEmail ? "/account" : "/auth"} aria-label={userEmail ? "Account details" : "Sign in"}>
             <User className={cn("w-5 h-5 transition-colors", transparent ? "text-white" : "text-foreground")} />
           </Link>
           <Link to="/cart" className="relative" aria-label="Shopping cart">

@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import heroBg from "@/assets/hero-bg.jpg";
+import heroBg from "@/assets/hero-bg.png";
 import coreCollection from "@/assets/collections/core-collection.jpg";
 import setsAndPairs from "@/assets/collections/sets-and-pairs.jpg";
 import NewsletterSignup from "@/components/NewsletterSignup";
@@ -15,12 +15,17 @@ export default function Index() {
     <>
       {/* Hero — full bleed, header overlays this */}
       <section className="w-full h-[70vh] relative -mt-[72px]">
-        <img src={heroBg} alt="Handcrafted artisan knitwear" className="w-full h-full object-cover" />
+        <img src={heroBg} alt="Miracle Collections apparel" className="w-full h-full object-cover object-center" />
         <div className="absolute inset-0 bg-[hsl(30_30%_22%/0.3)]" />
         <div className="absolute bottom-0 left-0 right-0 px-6 pb-16 md:pb-20">
-          <h1 className="text-5xl md:text-7xl lg:text-8xl font-light text-white tracking-wide max-w-7xl mx-auto leading-none">
-            New Collection
-          </h1>
+          <div className="max-w-7xl mx-auto">
+            <h1 className="text-5xl md:text-7xl lg:text-8xl font-light text-white tracking-wide leading-none">
+              Miracle Collections
+            </h1>
+            <p className="text-base md:text-lg lg:text-xl font-light text-white/90 mt-4 max-w-2xl leading-relaxed tracking-wide">
+              Celebrating family, heritage, and the fine art of apparel for every generation.
+            </p>
+          </div>
         </div>
       </section>
 
@@ -28,7 +33,7 @@ export default function Index() {
       <section className="max-w-7xl mx-auto px-6 py-24">
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_2fr] gap-12 items-start">
         <h2 className="text-3xl md:text-4xl font-light text-foreground leading-snug">
-            Handcrafted knitwear for every season.
+            Charming kids' long frocks and apparel for every occasion.
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
             {featuredProducts.map(product => (
@@ -46,7 +51,7 @@ export default function Index() {
                   />
                 </div>
                 <h3 className="text-base font-light text-foreground mb-1">{product.name}</h3>
-                <p className="text-sm text-muted-foreground">${product.price.toFixed(2)}</p>
+                <p className="text-sm text-muted-foreground">₹{product.price.toFixed(2)}</p>
               </Link>
             ))}
           </div>
@@ -68,7 +73,7 @@ export default function Index() {
           {categoryCards.map(c => (
             <Link
               key={c.slug}
-              to={`/category/${c.slug}`}
+              to={`/shop?category=${c.slug}`}
               className="group relative block overflow-hidden"
             >
               {c.image && (

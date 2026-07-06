@@ -1,0 +1,63 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Product {
+  id            String   @id @default(uuid())
+  slug          String   @unique
+  name          String
+  price         Float
+  originalPrice Float?
+  image         String
+  description   String
+  badge         String?
+  availability  String?
+  category      String
+  sizes         String   @default("")
+  variant       String   @default("")
+  images        String   @default("")
+  createdAt     DateTime @default(now())
+}
+
+model Order {
+  id              String   @id @default(uuid())
+  customerName    String
+  customerEmail   String
+  status          String   @default("Processing")
+  items           String
+  total           Float
+  paymentMethod   String   @default("COD")
+  transactionId   String   @default("")
+  referenceNumber String   @default("")
+  createdAt       DateTime @default(now())
+}
+
+model Inquiry {
+  id        Int      @id @default(autoincrement())
+  name      String
+  email     String
+  message   String
+  createdAt DateTime @default(now())
+}
+
+model Address {
+  id                String   @id @default(uuid())
+  userId            String
+  name              String
+  fullAddress       String
+  landmark          String
+  city              String
+  district          String
+  pincode           String
+  contactNumber     String
+  emailAddress      String?
+  alternativeMobile String?
+  createdAt         DateTime @default(now())
+}

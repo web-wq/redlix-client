@@ -1,6 +1,7 @@
 import { useState } from "react";
 import NewsletterSignup from "@/components/NewsletterSignup";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 export default function Contact() {
   const { toast } = useToast();
@@ -10,13 +11,32 @@ export default function Contact() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    toast({
-      title: "Message sent!",
-      description: "Thank you for reaching out. We'll get back to you within 24 hours.",
-    });
-    setForm({ firstName: "", lastName: "", email: "", subject: "", message: "" });
-    setIsSubmitting(false);
+    try {
+      const fullName = `${form.firstName} ${form.lastName}`.trim();
+      const { error } = await supabase
+        .from("Inquiry")
+        .insert({
+          name: fullName,
+          email: form.email,
+          message: `Subject: ${form.subject}\n\n${form.message}`
+        });
+
+      if (error) throw error;
+
+      toast({
+        title: "Message sent!",
+        description: "Thank you for reaching out. We'll get back to you within 24 hours.",
+      });
+      setForm({ firstName: "", lastName: "", email: "", subject: "", message: "" });
+    } catch (error: any) {
+      toast({
+        title: "Error sending message",
+        description: error.message || "Something went wrong.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const update = (field: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
@@ -24,7 +44,7 @@ export default function Contact() {
 
   const labelClass = "block text-sm text-foreground mb-1";
   const requiredClass = "text-accent text-xs ml-1";
-  const inputClass = "w-full px-0 py-2 border-0 border-b border-border bg-transparent text-foreground text-sm focus:outline-none focus:border-foreground transition-colors";
+  const inputClass = "w-full px-0 py-2 border-0 border-b border-muted-foreground/35 bg-transparent text-foreground text-sm focus:outline-none focus:border-foreground transition-colors";
 
   return (
     <>
@@ -38,13 +58,40 @@ export default function Contact() {
             <p className="text-sm leading-relaxed text-muted-foreground mb-10">
               We'd love to hear from you — whether you have a question about our knitwear, need help with an order, or want to discuss a custom commission. Our small team typically responds within one business day.
             </p>
-            <div className="space-y-1">
-              <p className="text-lg text-foreground font-medium">
-                <a href="mailto:email@example.com" className="hover:underline">email@example.com</a>
-              </p>
-              <p className="text-lg text-foreground font-medium">
-                <a href="tel:+15555555555" className="hover:underline">(555) 555-5555</a>
-              </p>
+            <div className="space-y-6 mt-8">
+              <div>
+                <p className="text-xs uppercase tracking-widest text-muted-foreground mb-1">Email</p>
+                <p className="text-lg text-foreground font-light">
+                  <a href="mailto:miraclecollections581@gmail.com" className="hover:underline">miraclecollections581@gmail.com</a>
+                </p>
+              </div>
+
+              <div>
+                <p className="text-xs uppercase tracking-widest text-muted-foreground mb-1">Phone</p>
+                <p className="text-lg text-foreground font-light">
+                  <a href="tel:9346277009" className="hover:underline">9346277009</a>
+                </p>
+              </div>
+
+              <div>
+                <p className="text-xs uppercase tracking-widest text-muted-foreground mb-1">Address</p>
+                <p className="text-lg text-foreground font-light leading-relaxed">
+                  18-206, Near Hanumanpet Bus Stop,<br />
+                  Malkajgiri, Telangana 500047
+                </p>
+              </div>
+
+              <div className="rounded-lg overflow-hidden border border-border h-[200px] w-full max-w-md">
+                <iframe
+                  src="https://maps.google.com/maps?q=18-206,%20Near%20Hanumanpet%20Bus%20Stop,%20Malkajgiri,%20Telangana%20500047&t=&z=15&ie=UTF8&iwloc=&output=embed"
+                  width="100%"
+                  height="100%"
+                  style={{ border: 0 }}
+                  allowFullScreen={false}
+                  loading="lazy"
+                  title="Miracle Collections Location Map"
+                ></iframe>
+              </div>
             </div>
           </div>
 

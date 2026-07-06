@@ -15,16 +15,18 @@ export default function Auth() {
   const { toast } = useToast();
   const navigate = useNavigate();
 
-  // If already signed in, bounce home.
+  const redirect = params.get("redirect") || "/";
+
+  // If already signed in, bounce.
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
-      if (data.session) navigate("/", { replace: true });
+      if (data.session) navigate(redirect, { replace: true });
     });
     const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => {
-      if (session) navigate("/", { replace: true });
+      if (session) navigate(redirect, { replace: true });
     });
     return () => sub.subscription.unsubscribe();
-  }, [navigate]);
+  }, [navigate, redirect]);
 
   useEffect(() => {
     setMode(params.get("mode") === "signup" ? "signup" : "signin");

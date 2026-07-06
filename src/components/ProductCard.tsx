@@ -26,9 +26,9 @@ export default function ProductCard({ product }: { product: Product }) {
           )}
         </div>
         <div className="flex items-center gap-2 mt-1">
-          <span className="text-sm text-foreground">${product.price.toFixed(2)}</span>
+          <span className="text-sm text-foreground">₹{product.price.toFixed(2)}</span>
           {product.originalPrice && (
-            <span className="text-sm text-muted-foreground/60 line-through">${product.originalPrice.toFixed(2)}</span>
+            <span className="text-sm text-muted-foreground/60 line-through">₹{product.originalPrice.toFixed(2)}</span>
           )}
         </div>
       </div>
