@@ -15,6 +15,7 @@ import ProductDetail from "./pages/ProductDetail";
 import CoreCollection from "./pages/CoreCollection";
 import SetsAndPairs from "./pages/SetsAndPairs";
 import Category from "./pages/Category";
+import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -38,6 +39,7 @@ const App = () => (
               <Route path="/collections/core" element={<CoreCollection />} />
               <Route path="/collections/sets-and-pairs" element={<SetsAndPairs />} />
               <Route path="/category/:slug" element={<Category />} />
+              <Route path="/auth" element={<Auth />} />
             </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>

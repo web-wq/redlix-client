@@ -1,15 +1,21 @@
-import { Link, useLocation } from "react-router-dom";
-import { ShoppingCart, Menu, X, Instagram } from "lucide-react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { ShoppingCart, Menu, X, Instagram, User, LogOut } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const navLinks = [
   { to: "/shop", label: "Shop" },
-  { to: "/category/men", label: "Men" },
-  { to: "/category/women", label: "Women" },
-  { to: "/category/kids", label: "Kids" },
-  { to: "/category/footwear", label: "Shoes" },
   { to: "/about", label: "About" },
   { to: "/contact", label: "Contact" },
   
@@ -18,8 +24,11 @@ const navLinks = [
 export default function Header() {
   const { totalItems } = useCart();
   const { pathname } = useLocation();
+  const navigate = useNavigate();
+  const { toast } = useToast();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [userEmail, setUserEmail] = useState<string | null>(null);
 
   const isHome = pathname === "/";
 
@@ -29,6 +38,22 @@ export default function Header() {
     onScroll();
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
+
+  useEffect(() => {
+    const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => {
+      setUserEmail(session?.user.email ?? null);
+    });
+    supabase.auth.getSession().then(({ data }) => {
+      setUserEmail(data.session?.user.email ?? null);
+    });
+    return () => sub.subscription.unsubscribe();
+  }, []);
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    toast({ title: "Signed out" });
+    navigate("/");
+  };
 
   const transparent = isHome && !scrolled && !mobileOpen;
 
@@ -75,6 +100,30 @@ export default function Header() {
           <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
             <Instagram className={cn("w-[18px] h-[18px] transition-colors", transparent ? "text-white/80 hover:text-white" : "text-muted-foreground hover:text-foreground")} />
           </a>
+
+          {/* Profile / Account */}
+          {userEmail ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger aria-label="Account menu" className="outline-none">
+                <User className={cn("w-[18px] h-[18px] transition-colors", transparent ? "text-white/80 hover:text-white" : "text-muted-foreground hover:text-foreground")} />
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuLabel className="font-normal">
+                  <span className="block text-xs text-muted-foreground">Signed in as</span>
+                  <span className="block truncate text-sm">{userEmail}</span>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={handleSignOut}>
+                  <LogOut className="w-4 h-4 mr-2" /> Sign out
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : (
+            <Link to="/auth" aria-label="Sign in">
+              <User className={cn("w-[18px] h-[18px] transition-colors", transparent ? "text-white/80 hover:text-white" : "text-muted-foreground hover:text-foreground")} />
+            </Link>
+          )}
+
           <Link to="/cart" className="relative" aria-label="Shopping cart">
             <ShoppingCart className={cn("w-[18px] h-[18px] transition-colors", transparent ? "text-white/80 hover:text-white" : "text-muted-foreground hover:text-foreground")} />
             {totalItems > 0 && (
@@ -87,6 +136,9 @@ export default function Header() {
 
         {/* Mobile */}
         <div className="flex md:hidden items-center gap-4">
+          <Link to={userEmail ? "/" : "/auth"} onClick={userEmail ? handleSignOut : undefined} aria-label={userEmail ? "Sign out" : "Sign in"}>
+            <User className={cn("w-5 h-5 transition-colors", transparent ? "text-white" : "text-foreground")} />
+          </Link>
           <Link to="/cart" className="relative" aria-label="Shopping cart">
             <ShoppingCart className={cn("w-5 h-5 transition-colors", transparent ? "text-white" : "text-foreground")} />
             {totalItems > 0 && (
@@ -120,6 +172,15 @@ export default function Header() {
               {link.label}
             </Link>
           ))}
+          {!userEmail && (
+            <Link
+              to="/auth"
+              onClick={() => setMobileOpen(false)}
+              className="block text-sm uppercase tracking-wider text-muted-foreground"
+            >
+              Sign in / Create account
+            </Link>
+          )}
         </nav>
       )}
     </header>
