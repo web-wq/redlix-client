@@ -15,12 +15,31 @@ import {
   Clock,
   ChevronRight,
   Loader2,
-  RefreshCw
+  RefreshCw,
+  Eye,
+  X
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
+// Helper: a labelled row used in the order-detail modal
+function Row({ label, value, mono = false, badge }: { label: string; value: string; mono?: boolean; badge?: "purple" | "amber" }) {
+  return (
+    <div className="flex items-start justify-between gap-4">
+      <span className="text-xs text-muted-foreground uppercase tracking-wider font-semibold shrink-0 mt-0.5 w-32">{label}</span>
+      {badge ? (
+        <span className={`text-xs font-semibold px-2 py-0.5 rounded-sm ${
+          badge === "purple" ? "bg-purple-50 text-purple-700" : "bg-amber-50 text-amber-700"
+        }`}>{value}</span>
+      ) : (
+        <span className={`text-sm text-foreground text-right ${mono ? "font-mono" : ""}`}>{value}</span>
+      )}
+    </div>
+  );
+}
+
 export default function Admin() {
   const { toast } = useToast();
+
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
 
@@ -37,6 +56,7 @@ export default function Admin() {
   const [inquiries, setInquiries] = useState<any[]>([]);
   const [dbProducts, setDbProducts] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [selectedOrder, setSelectedOrder] = useState<any | null>(null);
 
   // Authentication check on load
   useEffect(() => {
@@ -375,51 +395,35 @@ export default function Admin() {
               <p className="text-sm text-muted-foreground mt-1">Manage, update, and track customer order fulfillment statuses.</p>
             </div>
 
-            <div className="bg-white border border-border/80 p-6 shadow-sm rounded-sm">
+            <div className="bg-white border border-border/80 shadow-sm rounded-sm">
               {orders.length > 0 ? (
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left border-collapse">
+                <div className="overflow-x-auto w-full">
+                  <table className="min-w-[860px] w-full text-left border-collapse">
                     <thead>
-                      <tr className="border-b border-border/60 text-xs uppercase tracking-widest text-muted-foreground pb-4">
-                        <th className="py-3 font-semibold">Order ID</th>
-                        <th className="py-3 font-semibold">Customer</th>
-                        <th className="py-3 font-semibold">Date</th>
-                        <th className="py-3 font-semibold">Status</th>
-                        <th className="py-3 font-semibold">Change Status</th>
-                        <th className="py-3 font-semibold">Items</th>
-                        <th className="py-3 font-semibold text-right">Total</th>
+                      <tr className="border-b border-border/60 text-xs uppercase tracking-widest text-muted-foreground">
+                        <th className="py-3 px-4 font-semibold whitespace-nowrap">Order ID</th>
+                        <th className="py-3 px-4 font-semibold whitespace-nowrap">Customer</th>
+                        <th className="py-3 px-4 font-semibold whitespace-nowrap">Date</th>
+                        <th className="py-3 px-4 font-semibold whitespace-nowrap">Status</th>
+                        <th className="py-3 px-4 font-semibold whitespace-nowrap">Change Status</th>
+                        <th className="py-3 px-4 font-semibold text-right whitespace-nowrap">Total</th>
+                        <th className="py-3 px-4 font-semibold text-center whitespace-nowrap">Details</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-border/60 text-sm">
                       {orders.map(order => (
                         <tr key={order.id} className="hover:bg-muted/10 transition-colors">
-                          <td className="py-4 font-mono font-medium text-accent truncate max-w-[120px]">{order.id}</td>
-                          <td className="py-4 text-foreground">
-                            <div>
-                              <p className="font-medium">{order.customerName}</p>
-                              <p className="text-xs text-muted-foreground">{order.customerEmail}</p>
-                              <div className="mt-1 flex flex-col gap-0.5">
-                                {order.paymentMethod === "UPI_QR" ? (
-                                  <>
-                                    <span className="inline-block text-[10px] font-semibold text-purple-700 bg-purple-50 px-1 py-0.5 rounded-sm w-fit">
-                                      UPI: {order.transactionId || "N/A"}
-                                    </span>
-                                    {order.referenceNumber && (
-                                      <span className="text-[10px] font-mono text-muted-foreground">
-                                        Ref/UTR: {order.referenceNumber}
-                                      </span>
-                                    )}
-                                  </>
-                                ) : (
-                                  <span className="inline-block text-[10px] font-semibold text-amber-700 bg-amber-50 px-1 py-0.5 rounded-sm w-fit">
-                                    COD (Pay on Delivery)
-                                  </span>
-                                )}
-                              </div>
-                            </div>
+                          <td className="py-3 px-4 font-mono text-xs font-medium text-accent whitespace-nowrap max-w-[110px] truncate">
+                            #{order.id.substring(0, 8).toUpperCase()}
                           </td>
-                          <td className="py-4 text-muted-foreground">{new Date(order.createdAt).toLocaleDateString("en-IN")}</td>
-                          <td className="py-4">
+                          <td className="py-3 px-4 whitespace-nowrap">
+                            <p className="font-medium text-foreground">{order.customerName}</p>
+                            <p className="text-xs text-muted-foreground">{order.customerEmail}</p>
+                          </td>
+                          <td className="py-3 px-4 text-muted-foreground whitespace-nowrap text-xs">
+                            {new Date(order.createdAt).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })}
+                          </td>
+                          <td className="py-3 px-4 whitespace-nowrap">
                             <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium ${
                               order.status === "Delivered" ? "bg-green-50 text-green-700" :
                               order.status === "Shipped" ? "bg-blue-50 text-blue-700" : "bg-yellow-50 text-yellow-700"
@@ -428,7 +432,7 @@ export default function Admin() {
                               {order.status}
                             </span>
                           </td>
-                          <td className="py-4">
+                          <td className="py-3 px-4 whitespace-nowrap">
                             <select
                               value={order.status}
                               onChange={(e) => handleUpdateOrderStatus(order.id, e.target.value)}
@@ -439,8 +443,15 @@ export default function Admin() {
                               <option value="Delivered">Delivered</option>
                             </select>
                           </td>
-                          <td className="py-4 text-muted-foreground max-w-xs truncate">{order.items}</td>
-                          <td className="py-4 text-right font-medium text-foreground">₹{order.total}</td>
+                          <td className="py-3 px-4 text-right font-medium text-foreground whitespace-nowrap">₹{order.total?.toLocaleString("en-IN")}</td>
+                          <td className="py-3 px-4 text-center">
+                            <button
+                              onClick={() => setSelectedOrder(order)}
+                              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-accent/10 text-accent hover:bg-accent/20 transition-colors rounded-sm"
+                            >
+                              <Eye className="w-3.5 h-3.5" /> Details
+                            </button>
+                          </td>
                         </tr>
                       ))}
                     </tbody>
@@ -451,6 +462,103 @@ export default function Admin() {
                   No orders found in database.
                 </div>
               )}
+            </div>
+          </div>
+        )}
+
+        {/* Order Details Modal */}
+        {selectedOrder && (
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm px-4"
+            onClick={() => setSelectedOrder(null)}
+          >
+            <div
+              className="bg-white w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-sm shadow-2xl border border-border"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Modal header */}
+              <div className="flex items-center justify-between px-6 py-5 border-b border-border">
+                <div>
+                  <p className="text-xs uppercase tracking-widest text-muted-foreground font-semibold">Order Details</p>
+                  <h2 className="text-lg font-medium text-foreground mt-0.5">
+                    #{selectedOrder.id.substring(0, 8).toUpperCase()}
+                  </h2>
+                </div>
+                <button
+                  onClick={() => setSelectedOrder(null)}
+                  className="text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <div className="px-6 py-5 space-y-6">
+                {/* Customer Info */}
+                <section>
+                  <p className="text-[10px] uppercase tracking-widest font-semibold text-muted-foreground mb-3">Customer Information</p>
+                  <div className="space-y-2 text-sm">
+                    <Row label="Name" value={selectedOrder.customerName} />
+                    <Row label="Email" value={selectedOrder.customerEmail} />
+                    {selectedOrder.phone && <Row label="Phone" value={selectedOrder.phone} />}
+                    {selectedOrder.alternatePhone && <Row label="Alt. Phone" value={selectedOrder.alternatePhone} />}
+                  </div>
+                </section>
+
+                {/* Delivery Address */}
+                {(selectedOrder.address || selectedOrder.city) && (
+                  <section>
+                    <p className="text-[10px] uppercase tracking-widest font-semibold text-muted-foreground mb-3">Delivery Address</p>
+                    <div className="space-y-2 text-sm">
+                      {selectedOrder.address && <Row label="Address" value={selectedOrder.address} />}
+                      {selectedOrder.landmark && <Row label="Landmark" value={selectedOrder.landmark} />}
+                      {selectedOrder.city && <Row label="City" value={selectedOrder.city} />}
+                      {selectedOrder.district && <Row label="District" value={selectedOrder.district} />}
+                      {selectedOrder.pincode && <Row label="Pincode" value={selectedOrder.pincode} />}
+                    </div>
+                  </section>
+                )}
+
+                {/* Payment Info */}
+                <section>
+                  <p className="text-[10px] uppercase tracking-widest font-semibold text-muted-foreground mb-3">Payment Information</p>
+                  <div className="space-y-2 text-sm">
+                    <Row
+                      label="Method"
+                      value={selectedOrder.paymentMethod === "UPI_QR" ? "UPI / QR Code" : "Cash on Delivery (COD)"}
+                      badge={selectedOrder.paymentMethod === "UPI_QR" ? "purple" : "amber"}
+                    />
+                    {selectedOrder.paymentMethod === "UPI_QR" && (
+                      <>
+                        {selectedOrder.transactionId && <Row label="Transaction ID" value={selectedOrder.transactionId} mono />}
+                        {selectedOrder.referenceNumber && <Row label="Reference / UTR" value={selectedOrder.referenceNumber} mono />}
+                      </>
+                    )}
+                    <Row label="Order Status" value={selectedOrder.status} />
+                    <Row label="Date" value={new Date(selectedOrder.createdAt).toLocaleString("en-IN", { dateStyle: "long", timeStyle: "short" })} />
+                  </div>
+                </section>
+
+                {/* Items */}
+                <section>
+                  <p className="text-[10px] uppercase tracking-widest font-semibold text-muted-foreground mb-3">Items Ordered</p>
+                  <div className="bg-muted/30 border border-border/40 rounded-sm p-4">
+                    <p className="text-sm text-foreground whitespace-pre-wrap leading-relaxed">{selectedOrder.items}</p>
+                  </div>
+                  <div className="mt-3 flex justify-between items-center">
+                    <span className="text-xs text-muted-foreground uppercase tracking-widest font-semibold">Order Total</span>
+                    <span className="text-lg font-medium text-foreground">₹{selectedOrder.total?.toLocaleString("en-IN")}</span>
+                  </div>
+                </section>
+              </div>
+
+              <div className="px-6 py-4 border-t border-border bg-muted/20 flex justify-end">
+                <button
+                  onClick={() => setSelectedOrder(null)}
+                  className="px-5 py-2 text-xs uppercase tracking-widest bg-primary text-primary-foreground hover:opacity-90 transition-opacity font-medium"
+                >
+                  Close
+                </button>
+              </div>
             </div>
           </div>
         )}
