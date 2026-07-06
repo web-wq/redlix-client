@@ -90,9 +90,14 @@ export default function Footer() {
           </div>
         </div>
 
-        <p className="mt-12 pt-6 border-t border-border text-xs text-muted-foreground">
-          © {new Date().getFullYear()} Miracle Collections. All rights reserved.
-        </p>
+        <div className="mt-12 pt-6 border-t border-border flex items-center justify-between">
+          <p className="text-xs text-muted-foreground">
+            © {new Date().getFullYear()} Miracle Collections. All rights reserved.
+          </p>
+          <Link to="/admin" className="text-xs text-muted-foreground/40 hover:text-muted-foreground transition-colors">
+            Admin
+          </Link>
+        </div>
       </div>
     </footer>
   );
