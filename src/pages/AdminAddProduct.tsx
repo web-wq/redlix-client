@@ -3,6 +3,22 @@ import { useNavigate, Link } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, X, Upload } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+const kidsSizesWithPrices = [
+  { size: "6–12 Months", price: 211 },
+  { size: "1–2 Years", price: 221 },
+  { size: "2–3 Years", price: 231 },
+  { size: "3–4 Years", price: 241 },
+  { size: "4–5 Years", price: 251 },
+  { size: "5–6 Years", price: 261 },
+  { size: "6–7 Years", price: 271 },
+  { size: "7–8 Years", price: 281 },
+  { size: "8–9 Years", price: 291 },
+  { size: "9–10 Years", price: 300 },
+  { size: "10–11 Years", price: 310 },
+  { size: "11–12 Years", price: 320 },
+  { size: "12–13 Years", price: 330 },
+  { size: "13–14 Years", price: 340 }
+];
 
 export default function AdminAddProduct() {
   const { toast } = useToast();
@@ -33,6 +49,11 @@ export default function AdminAddProduct() {
   const [sizes, setSizes] = useState<string[]>([]);
   const [uploadedImages, setUploadedImages] = useState<string[]>([]); // base64 strings
   const [isSaving, setIsSaving] = useState(false);
+
+  // Reset sizes selection when category changes to prevent cross-contamination of size systems
+  useEffect(() => {
+    setSizes([]);
+  }, [category]);
 
   const sizeOptions = ["S", "M", "L", "XL", "XXL"];
 
@@ -248,19 +269,60 @@ export default function AdminAddProduct() {
               <label className="text-xs uppercase tracking-widest text-muted-foreground font-semibold block">
                 Select Available Sizes
               </label>
-              <div className="flex gap-4 pt-1">
-                {sizeOptions.map(size => (
-                  <label key={size} className="flex items-center gap-1.5 cursor-pointer text-sm text-foreground">
-                    <input
-                      type="checkbox"
-                      checked={sizes.includes(size)}
-                      onChange={() => handleSizeToggle(size)}
-                      className="w-4 h-4 rounded-sm border-border text-accent focus:ring-accent"
-                    />
-                    <span className="font-mono text-xs">{size}</span>
-                  </label>
-                ))}
-              </div>
+              {category === "kids" ? (
+                <div className="space-y-4">
+                  {/* Size options checklist */}
+                  <div className="grid grid-cols-2 gap-3 pt-1">
+                    {kidsSizesWithPrices.map(item => (
+                      <label key={item.size} className="flex items-center gap-2 cursor-pointer text-sm text-foreground hover:bg-muted/10 p-1.5 rounded-sm border border-border/30">
+                        <input
+                          type="checkbox"
+                          checked={sizes.includes(item.size)}
+                          onChange={() => handleSizeToggle(item.size)}
+                          className="w-4 h-4 rounded-sm border-border text-accent focus:ring-accent"
+                        />
+                        <span className="text-xs font-mono">{item.size} (₹{item.price})</span>
+                      </label>
+                    ))}
+                  </div>
+
+                  {/* Size Chart Table */}
+                  <div className="mt-3 border border-border/60 rounded-sm overflow-hidden bg-muted/5 p-3">
+                    <div className="max-h-60 overflow-y-auto border border-border/40 rounded-sm">
+                      <table className="w-full text-left text-xs">
+                        <thead className="bg-muted/30 text-muted-foreground uppercase tracking-wider text-[10px] border-b border-border/40">
+                          <tr>
+                            <th className="py-2 px-3 font-semibold">Size</th>
+                            <th className="py-2 px-3 font-semibold text-right">Price (₹)</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-border/30 text-foreground">
+                          {kidsSizesWithPrices.map(item => (
+                            <tr key={item.size} className="hover:bg-muted/10 transition-colors">
+                              <td className="py-1.5 px-3 font-medium">{item.size}</td>
+                              <td className="py-1.5 px-3 text-right font-mono">₹{item.price}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex gap-4 pt-1">
+                  {sizeOptions.map(size => (
+                    <label key={size} className="flex items-center gap-1.5 cursor-pointer text-sm text-foreground">
+                      <input
+                        type="checkbox"
+                        checked={sizes.includes(size)}
+                        onChange={() => handleSizeToggle(size)}
+                        className="w-4 h-4 rounded-sm border-border text-accent focus:ring-accent"
+                      />
+                      <span className="font-mono text-xs">{size}</span>
+                    </label>
+                  ))}
+                </div>
+              )}
             </div>
 
             <div className="space-y-1">

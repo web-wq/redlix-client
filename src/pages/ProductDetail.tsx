@@ -183,7 +183,7 @@ export default function ProductDetail() {
                     <button
                       key={size}
                       onClick={() => setSelectedSize(size)}
-                      className={`w-10 h-10 font-mono text-xs rounded-sm border flex items-center justify-center transition-all ${
+                      className={`px-3 h-10 min-w-[2.5rem] font-mono text-xs rounded-sm border flex items-center justify-center transition-all ${
                         selectedSize === size
                           ? "bg-primary text-primary-foreground border-primary font-bold"
                           : "border-border/80 text-foreground hover:border-foreground"
