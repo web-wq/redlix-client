@@ -8,7 +8,14 @@ export default function Footer() {
       <div className="max-w-7xl mx-auto">
         <div className="grid grid-cols-1 md:grid-cols-[2fr_1fr_1fr_1.2fr] gap-12">
           <div>
-            <h3 className="text-2xl font-light tracking-wide text-foreground mb-3">Miracle Collections</h3>
+            <div className="flex items-center gap-3 mb-3">
+              <img 
+                src="https://ik.imagekit.io/dypkhqxip/cli" 
+                alt="Miracle Collections Logo" 
+                className="h-9 w-auto object-contain"
+              />
+              <h3 className="text-2xl font-light tracking-wide text-foreground">Miracle Collections</h3>
+            </div>
             <p className="text-sm text-muted-foreground max-w-xs">
               Apparel and footwear for the whole family, made with care.
             </p>

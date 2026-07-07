@@ -69,12 +69,21 @@ export default function Header() {
       <div className="flex items-center justify-between px-6 py-4 max-w-7xl mx-auto">
         <Link
           to="/"
-          className={cn(
-            "text-2xl font-light tracking-wide transition-colors",
-            transparent ? "text-white" : "text-foreground"
-          )}
+          className="flex items-center gap-3"
         >
-          Miracle Collections
+          <img 
+            src="https://ik.imagekit.io/dypkhqxip/cli" 
+            alt="Miracle Collections Logo" 
+            className="h-9 w-auto object-contain"
+          />
+          <span
+            className={cn(
+              "text-2xl font-light tracking-wide transition-colors",
+              transparent ? "text-white" : "text-foreground"
+            )}
+          >
+            Miracle Collections
+          </span>
         </Link>
 
         {/* Desktop nav */}
