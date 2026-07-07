@@ -17,7 +17,8 @@ function sanitize(value: string): string {
 
 /** Validate 10-digit Indian mobile number */
 function validatePhone(phone: string): boolean {
-  return /^[6-9]\d{9}$/.test(phone.trim());
+  const clean = phone.replace(/[\s\-()]/g, "");
+  return /^(?:\+?91|0)?[6-9]\d{9}$/.test(clean);
 }
 
 /** Validate 6-digit Indian pincode */
@@ -27,7 +28,7 @@ function validatePincode(pin: string): boolean {
 
 /** Validate UPI transaction / UTR reference: alphanumeric, 6–50 chars */
 function validatePaymentRef(ref: string): boolean {
-  return /^[A-Za-z0-9\-_]{4,60}$/.test(ref.trim());
+  return /^[A-Za-z0-9\s\-_/:.]{4,60}$/.test(ref.trim());
 }
 
 export default function Checkout() {
@@ -269,7 +270,6 @@ export default function Checkout() {
         .from("Order")
         .insert({
           id: crypto.randomUUID(),
-          userId: user.id,
           customerName: sanitize(selectedAddress.name),
           customerEmail: sanitize(selectedAddress.emailAddress || user.email),
           items: itemsListString,
